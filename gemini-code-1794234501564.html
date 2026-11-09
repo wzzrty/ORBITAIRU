@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="ru" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORBIT AI — Advanced Client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+<!-- Puter.js -->
+<script src="https://js.puter.com/v2/"></script>
+<!-- Markdown parser & Sanitizer -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<!-- Syntax Highlighting (Prism.js) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+<style>
+:root {
+  --bg: #090b10; --panel: #10131b; --panel2: #151a24; --line: #242a37;
+  --muted: #929bad; --text: #edf1f8; --accent: #a78bfa; --accent2: #6d5ce8; --green: #73d6ad;
+}
+.light {
+  color-scheme: light;
+  --bg: #f8fafc; --panel: #ffffff; --panel2: #f1f5f9; --line: #cbd5e1;
+  --muted: #64748b; --text: #0f172a; --accent: #7c3aed; --accent2: #6d28d9; --green: #10b981;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px 'DM Sans',sans-serif;height:100vh;overflow:hidden;transition:background .3s,color .3s}
+button,textarea,select,input{font:inherit}button{cursor:pointer}
+.app{height:100vh;display:grid;grid-template-columns:280px 1fr;background:radial-gradient(ellipse at 70% -20%,rgba(109,92,232,0.15) 0,transparent 42%),var(--bg)}
+.sidebar{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;padding:20px 14px;min-width:0;transition:transform .25s ease,background .3s}
+.brand{display:flex;align-items:center;justify-content:space-between;padding:2px 8px 20px;font:700 19px 'Space Grotesk';letter-spacing:-.5px}
+.brand-left{display:flex;align-items:center;gap:11px}
+.logo{width:31px;height:31px;border-radius:11px;background:linear-gradient(135deg,#c4b5fd,#6d5ce8);display:grid;place-items:center;color:#111;font-size:18px;box-shadow:0 5px 22px rgba(139,92,246,0.33)}
+.new-chat{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:12px 14px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:600;transition:.2s}
+.new-chat:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px)}
+.side-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;padding:22px 9px 8px}
+.chat-list{overflow:auto;display:flex;flex-direction:column;gap:4px;flex:1}
+.chat-item{padding:10px 11px;border-radius:9px;color:var(--muted);display:flex;align-items:center;justify-content:between;gap:8px;cursor:pointer;position:relative}
+.chat-item:hover,.chat-item.active{background:var(--panel2);color:var(--text)}
+.chat-item-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.chat-actions{display:none;gap:4px}
+.chat-item:hover .chat-actions{display:flex}
+.chat-action-btn{background:none;border:none;color:var(--muted);padding:2px 4px;border-radius:4px;font-size:12px}
+.chat-action-btn:hover{color:var(--text);background:var(--line)}
+.side-bottom{border-top:1px solid var(--line);padding-top:14px;margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px;color:var(--text)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--panel2);color:var(--accent);display:grid;place-items:center;font-weight:700;border:1px solid var(--line)}
+.user-meta{min-width:0;flex:1}
+.user-meta b{display:block;color:var(--text);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-meta small{color:var(--muted);font-size:11px}
+.sidebar-buttons{display:flex;gap:6px}
+.sidebar-btn{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px;border-radius:8px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.sidebar-btn:hover{background:var(--line)}
+
+.main{display:flex;flex-direction:column;min-width:0;height:100vh}
+.topbar{height:66px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--bg);backdrop-filter:blur(12px)}
+.top-left{display:flex;align-items:center;gap:12px}
+.mobile-menu{display:none}
+.model-select{appearance:none;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 34px 9px 12px;outline:none;max-width:240px;cursor:pointer}
+.status{font-size:11px;color:var(--green);display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(115,214,173,0.5)}
+.top-actions{display:flex;gap:8px}
+.icon-btn{border:1px solid var(--line);background:var(--panel);color:var(--muted);width:35px;height:35px;border-radius:9px;display:grid;place-items:center;transition:.2s}
+.icon-btn:hover{color:var(--text);background:var(--panel2)}
+
+.content{flex:1;overflow:auto;scroll-behavior:smooth}
+.welcome{height:100%;min-height:440px;display:flex;align-items:center;justify-content:center;padding:32px}
+.welcome-inner{max-width:720px;width:100%;text-align:center;margin-top:-25px}
+.orb{width:62px;height:62px;border-radius:22px;margin:0 auto 23px;background:linear-gradient(145deg,#c4b5fd,#7764ed 70%,#5141bc);display:grid;place-items:center;font-size:29px;color:#141020;box-shadow:0 10px 50px rgba(128,103,237,0.2)}
+.welcome h1{font:600 clamp(28px,4vw,42px) 'Space Grotesk';letter-spacing:-1.5px;margin:0 0 12px}
+.welcome p{color:var(--muted);font-size:15px;margin:0 auto 30px;max-width:490px;line-height:1.65}
+.suggestions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;text-align:left}
+.suggestion{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px;color:var(--text);text-align:left;transition:.2s}
+.suggestion:hover{border-color:var(--accent);background:var(--panel2);transform:translateY(-2px)}
+.suggestion b{display:block;font-size:13px;margin-bottom:5px}
+.suggestion small{color:var(--muted);line-height:1.4}
+
+.messages{max-width:850px;margin:0 auto;padding:34px 26px 46px;display:flex;flex-direction:column;gap:25px}
+.message{display:grid;grid-template-columns:34px 1fr;gap:13px;animation:appear .22s ease}
+.message.user{grid-template-columns:1fr 34px}
+.message.user .msg-avatar{grid-column:2;grid-row:1;background:var(--panel2);color:var(--accent);border:1px solid var(--line)}
+.message.user .bubble{grid-column:1;grid-row:1;justify-self:end;background:var(--panel);border:1px solid var(--line);border-radius:16px 5px 16px 16px;max-width:85%}
+.msg-avatar{width:31px;height:31px;border-radius:11px;background:var(--panel);color:var(--accent);display:grid;place-items:center;font-weight:700;border:1px solid var(--line)}
+.bubble{min-width:0;line-height:1.72;padding:12px 16px;color:var(--text);overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:5px 16px 16px 16px}
+.message.user .bubble{background:var(--panel2)}
+.bubble p{margin:0 0 12px}.bubble p:last-child{margin-bottom:0}
+.bubble h1,.bubble h2,.bubble h3{font-family:'Space Grotesk';line-height:1.3;margin:20px 0 9px}
+.bubble h1{font-size:23px}.bubble h2{font-size:19px}.bubble h3{font-size:16px}
+.bubble ul,.bubble ol{padding-left:23px}.bubble li{margin:5px 0}
+.bubble code{font-family:ui-monospace,monospace;background:var(--panel2);padding:2px 5px;border-radius:5px;font-size:.9em;border:1px solid var(--line)}
+.bubble pre{background:#0a0d13 !important;border:1px solid var(--line);border-radius:11px;padding:15px;overflow:auto;position:relative}
+.bubble pre code{background:none;padding:0;border:none;color:#f8f8f2}
+.code-copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer}
+.code-copy-btn:hover{background:rgba(255,255,255,0.2)}
+.bubble blockquote{border-left:3px solid var(--accent);padding-left:13px;color:var(--muted);margin-left:0}
+.bubble a{color:var(--accent)}
+.msg-media{margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px}
+.msg-media img, .msg-media video{max-width:240px;max-height:200px;border-radius:8px;border:1px solid var(--line);object-fit:cover}
+
+.msg-tools{display:flex;gap:7px;margin-top:10px;opacity:0;transition:.2s}
+.message:hover .msg-tools{opacity:1}
+.mini-btn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer}
+.mini-btn:hover{color:var(--text);background:var(--line)}
+.typing{display:flex;gap:5px;padding:8px 0}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.05s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+
+.composer-wrap{padding:15px 24px 20px;background:linear-gradient(transparent,var(--bg) 25%)}
+.composer{max-width:850px;margin:0 auto;border:1px solid var(--line);background:var(--panel);border-radius:17px;padding:10px 12px 8px;box-shadow:0 12px 40px rgba(0,0,0,0.15)}
+.composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,120,240,0.18),0 12px 40px rgba(0,0,0,0.2)}
+.composer textarea{width:100%;resize:none;max-height:180px;min-height:28px;background:transparent;border:0;outline:0;color:var(--text);padding:4px 5px 6px;line-height:1.5}
+.composer textarea::placeholder{color:var(--muted)}
+
+.attachment-preview{display:flex;gap:8px;flex-wrap:wrap;padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.preview-chip{position:relative;width:60px;height:60px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:var(--panel2);display:grid;place-items:center}
+.preview-chip img, .preview-chip video{width:100%;height:100%;object-fit:cover}
+.preview-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;display:grid;place-items:center;cursor:pointer}
+
+.composer-bottom{display:flex;align-items:center;justify-content:space-between}
+.composer-left-actions{display:flex;align-items:center;gap:6px}
+.composer-action-btn{background:none;border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:16px;cursor:pointer}
+.composer-action-btn:hover{background:var(--panel2);color:var(--text)}
+.composer-action-btn.recording{color:#ef4444;animation:pulse 1.2s infinite}
+.hint{font-size:10px;color:var(--muted);padding-left:5px}
+.send{width:35px;height:35px;border:0;border-radius:10px;background:var(--accent);color:#171126;font-size:17px;font-weight:700;display:grid;place-items:center;cursor:pointer;transition:.2s}
+.send:hover{opacity:0.9;transform:scale(1.03)}
+.send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.send.stop{background:#ef4444;color:#fff}
+
+.footer-note{text-align:center;font-size:10px;color:var(--muted);margin-top:10px}
+.footer-note a{color:var(--accent);text-decoration:none}
+
+/* Модальное окно настроек */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:100%;max-width:480px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.4)}
+.modal h2{margin:0 0 16px;font:600 18px 'Space Grotesk'}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.modal-field input{width:100%;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;outline:none}
+.modal-field input:focus{border-color:var(--accent)}
+.modal-buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.modal-btn{padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px}
+.modal-btn.cancel{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+.modal-btn.save{background:var(--accent);border:none;color:#171126}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px 18px;border-radius:10px;display:none;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+
+@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+@keyframes pulse{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}
+
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;z-index:50;inset:0 auto 0 0;width:280px;transform:translateX(-100%);box-shadow:20px 0 50px rgba(0,0,0,0.5)}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:grid}
+  .topbar{padding:0 14px}
+  .messages{padding:23px 15px 35px}
+  .composer-wrap{padding:10px 12px 15px}
+  .welcome{padding:20px}
+  .suggestions{grid-template-columns:1fr}
+  .status{display:none}
+  .model-select{max-width:160px}
+  .message.user .bubble{max-width:94%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Сайдбар -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-left"><div class="logo">✳</div> orbit<span style="color:var(--accent)">.</span></div>
+      <button class="icon-btn" id="themeToggle" title="Сменить тему">☀️</button>
+    </div>
+    <button class="new-chat" id="newChat"><span>＋</span> Новый чат</button>
+    <div class="side-label">История чатов</div>
+    <div class="chat-list" id="chatList"></div>
+    <div class="side-bottom">
+      <div class="sidebar-buttons">
+        <button class="sidebar-btn" id="exportBtn" title="Экспорт в Markdown">📥 Экспорт</button>
+        <button class="sidebar-btn" id="settingsBtn" title="Настройки API">⚙ Настройки</button>
+      </div>
+      <div class="user-card">
+        <div class="avatar" id="userAvatar">O</div>
+        <div class="user-meta">
+          <b id="userName">Гость</b>
+          <small id="userStatus">Puter.com Active</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Основная область -->
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <button class="icon-btn mobile-menu" id="menuBtn" aria-label="Меню">☰</button>
+        <select class="model-select" id="modelSelect" aria-label="Модель AI">
+          <option value="gpt-4o">GPT-4o · Оптимальная</option>
+          <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+          <option value="gpt-5.4-nano">GPT-5.4 Nano</option>
+        </select>
+        <div class="status"><span class="dot"></span> <span id="statusText">AI Готов</span></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="clearBtn" title="Очистить чат">⌫</button>
+      </div>
+    </header>
+
+    <section class="content" id="content">
+      <div class="welcome" id="welcome">
+        <div class="welcome-inner">
+          <div class="orb">✳</div>
+          <h1>Чем я могу помочь?</h1>
+          <p>Интеллектуальный AI-ассистент с поддержкой мультимодальности, голосового ввода и озвучки.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="Объясни сложные технические концепции простыми словами с примерами."><b>✧ Объяснить тему</b><small>Разбор сложных вопросов простым языком</small></button>
+            <button class="suggestion" data-prompt="Помоги сгенерировать идеи и архитектуру для нового веб-приложения."><b>✎ Архитектура проекта</b><small>Свежие идеи для вашего кода</small></button>
+            <button class="suggestion" data-prompt="Напиши качественный код с комментариями и объяснением."><b>⌁ Написать код</b><small>Создание скриптов, стилей и функций</small></button>
+            <button class="suggestion" data-prompt="Составь пошаговый план решения задачи."><b>↗ План действий</b><small>Четкие шаги для достижения цели</small></button>
+          </div>
+        </div>
+      </div>
+      <div class="messages" id="messages" hidden></div>
+    </section>
+
+    <!-- Поле ввода -->
+    <div class="composer-wrap">
+      <div class="composer">
+        <div class="attachment-preview" id="attachmentPreview" hidden></div>
+        <textarea id="prompt" rows="1" placeholder="Введите сообщение или прикрепите файл…" aria-label="Сообщение"></textarea>
+        <div class="composer-bottom">
+          <div class="composer-left-actions">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" style="display:none" multiple>
+            <button class="composer-action-btn" id="attachBtn" title="Прикрепить фото/видео">📎</button>
+            <button class="composer-action-btn" id="micBtn" title="Голосовой ввод">🎤</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="hint">Enter ↵ · Shift+Enter переноса</span>
+            <button class="send" id="sendBtn" aria-label="Отправить">↑</button>
+          </div>
+        </div>
+      </div>
+      <div class="footer-note">Работает на Puter.ai & Web APIs · Разработано для вас</div>
+    </div>
+  </main>
+</div>
+
+<!-- Модальное окно настроек -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Настройки API и ключей</h2>
+    <div class="modal-field">
+      <label>Кастомный OpenAI API Key (опционально)</label>
+      <input type="password" id="customApiKey" placeholder="sk-...">
+      <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Если не указан, используется встроенный Puter.ai</small>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" id="closeModal">Отмена</button>
+      <button class="modal-btn save" id="saveSettings">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'orbit-chat-v2';
+  let chats = [];
+  let activeId = null;
+  let busy = false;
+  let abortController = null;
+  let currentAttachments = []; // Массив прикрепленных файлов {type, data, name}
+  let recognition = null;
+  let isRecording = false;
+
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const escapeHTML = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const currentChat = () => chats.find(c => c.id === activeId);
+  const toast = message => { $('toast').textContent = message; $('toast').style.display = 'block'; clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').style.display = 'none', 3000); };
+  
+  // Сохранение через Puter.kv если доступно, иначе localStorage
+  async function saveData() {
+    const data = { chats, activeId, model: $('modelSelect').value, apiKey: $('customApiKey').value };
+    try {
+      if (window.puter?.kv) {
+        await puter.kv.set(STORAGE_KEY, JSON.stringify(data));
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    } catch(e) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+  }
+
+  async function loadData() {
+    try {
+      let raw = null;
+      if (window.puter?.kv) {
+        raw = await puter.kv.get(STORAGE_KEY);
+      }
+      if (!raw) {
+        raw = localStorage.getItem(STORAGE_KEY);
+      }
+      if (raw) {
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        chats = Array.isArray(data.chats) ? data.chats : [];
+        activeId = data.activeId || null;
+        if (data.model) $('modelSelect').value = data.model;
+        if (data.apiKey) $('customApiKey').value = data.apiKey;
+      }
+    } catch(e) { chats = []; }
+    if (!currentChat()) createChat(false);
+    renderAll();
+  }
+
+  function createChat(shouldSave = true) {
+    const chat = { id: uid(), title: 'Новый диалог', messages: [], created: Date.now() };
+    chats.unshift(chat);
+    activeId = chat.id;
+    if (shouldSave) saveData();
+    renderAll();
+    $('prompt').focus();
+  }
+
+  function renderSidebar() {
+    $('chatList').innerHTML = chats.map(c => `
+      <div class="chat-item ${c.id === activeId ? 'active' : ''}" data-id="${c.id}">
+        <span style="font-size:12px">💬</span>
+        <span class="chat-item-title">${escapeHTML(c.title)}</span>
+        <div class="chat-actions">
+          <button class="chat-action-btn rename-btn" data-id="${c.id}" title="Переименовать">✏️</button>
+          <button class="chat-action-btn delete-btn" data-id="${c.id}" title="Удалить">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    $('chatListquerySelectorAll'('.chat-item')).forEach(el => {
+      const id = el.dataset.id;
+      el.onclick = (e) => {
+        if (e.target.closest('button')) return;
+        activeId = id;
+        renderAll();
+        if(window.innerWidth <= 760) $('sidebar').classList.remove('open');
+      };
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        chats = chats.filter(c => c.id !== btn.dataset.id);
+        if (!chats.length) createChat(false);
+        else if (activeId === btn.dataset.id) activeId = chats[0].id;
+        saveData();
+        renderAll();
+      };
+    });
+
+    document.querySelectorAll('.rename-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const chat = chats.find(c => c.id === btn.dataset.id);
+        const newTitle = prompt('Введите новое название чата:', chat.title);
+        if (newTitle) {
+          chat.title = newTitle.trim();
+          saveData();
+          renderSidebar();
+        }
+      };
+    });
+  }
+
+  function renderAll() {
+    renderSidebar();
+    const chat = currentChat();
+    const hasMessages = chat && chat.messages.length > 0;
+    $('welcome').hidden = hasMessages;
+    $('messages').hidden = !hasMessages;
+    $('messages').innerHTML = '';
+    if (hasMessages) {
+      chat.messages.forEach((m, i) => appendMessage(m.role, m.content, i, m.media, false));
+    }
+    scrollBottom();
+  }
+
+  function markdown(text) {
+    if (!window.marked || !window.DOMPurify) return `<p>${escapeHTML(text).replace(/\n/g, '<br>')}</p>`;
+    marked.setOptions({ breaks: true, gfm: true });
+    let html = marked.parse(text || '');
+    return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+  }
+
+  function appendMessage(role, content, index, mediaList, scroll = true) {
+    const el = document.createElement('article');
+    el.className = `message ${role}`;
+    const avatar = role === 'user' ? 'Вы' : '✳';
+    
+    let mediaHtml = '';
+    if (mediaList && mediaList.length) {
+      mediaHtml = '<div class="msg-media">' + mediaList.map(m => {
+        if (m.type.startsWith('image/')) return `<img src="${m.data}" alt="attachment">`;
+        if (m.type.startsWith('video/')) return `<video src="${m.data}" controls></video>`;
+        return '';
+      }).join('') + '</div>';
+    }
+
+    el.innerHTML = `
+      <div class="msg-avatar">${avatar}</div>
+      <div class="bubble">
+        ${mediaHtml}
+        <div class="msg-text">${markdown(content)}</div>
+      </div>
+    `;
+
+    const bubble = el.querySelector('.bubble');
+    
+    // Подсветка кода и кнопка копирования
+    bubble.querySelectorAll('pre').forEach(pre => {
+      const code = pre.querySelector('code');
+      if (code) {
+        if (window.Prism) Prism.highlightElement(code);
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'code-copy-btn';
+        copyBtn.textContent = 'Копировать';
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(code.textContent);
+          toast('Код скопирован в буфер обмена');
+        };
+        pre.appendChild(copyBtn);
+      }
+    });
+
+    if (role === 'assistant' && index !== null) {
+      const tools = document.createElement('div');
+      tools.className = 'msg-tools';
+      
+      const copy = document.createElement('button');
+      copy.className = 'mini-btn';
+      copy.textContent = '📋 Копировать';
+      copy.onclick = () => navigator.clipboard?.writeText(content).then(() => toast('Ответ скопирован'));
+
+      const speak = document.createElement('button');
+      speak.className = 'mini-btn';
+      speak.textContent = '🔊 Озвучить';
+      speak.onclick = () => speakText(content);
+
+      tools.append(copy, speak);
+      bubble.append(tools);
+    }
+
+    $('messages').append(el);
+    if (scroll) scrollBottom();
+    return el.querySelector('.msg-text');
+  }
+
+  function scrollBottom() { $('content').scrollTop = $('content').scrollHeight; }
+
+  function setBusy(value) {
+    busy = value;
+    $('sendBtn').textContent = value ? '■' : '↑';
+    $('sendBtn').classList.toggle('stop', value);
+    $('prompt').disabled = value;
+  }
+
+  // TTS (Text-to-Speech)
+  function speakText(text) {
+    if (!window.speechSynthesis) { toast('Синтез речи не поддерживается браузером'); return; }
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#`_\[\]]/g, ''); // Убираем markdown символы
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'ru-RU';
+    window.speechSynthesis.speak(utterance);
+    toast('Воспроизведение речи...');
+  }
+
+  // STT (Speech-to-Text)
+  function initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { toast('Горячий микрофон (STT) не поддерживается вашим браузером'); return; }
+    
+    if (isRecording && recognition) {
+      recognition.stop();
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ru-RU';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      $('micBtn').classList.add('recording');
+      toast('Слушаю вас...');
+    };
+
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+      $('prompt').value = transcript;
+      resizeInput();
+    };
+
+    recognition.onerror = () => {
+      stopRecording();
+      toast('Ошибка распознавания речи');
+    };
+
+    recognition.onend = () => {
+      stopRecording();
+    };
+
+    recognition.start();
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    $('micBtn').classList.remove('recording');
+    if (recognition) { try { recognition.stop(); } catch(e){} }
+  }
+
+  // Обработка файлов и мультимодальности
+  $('attachBtn').onclick = () => $('fileInput').click();
+  $('fileInput').onchange = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        currentAttachments.push({ type: file.type, data: event.target.result, name: file.name });
+        renderAttachments();
+      };
+      reader.readAsDataURL(file);
+    });
+    $('fileInput').value = '';
+  };
+
+  function renderAttachments() {
+    const preview = $('attachmentPreview');
+    if (!currentAttachments.length) {
+      preview.hidden = true;
+      preview.innerHTML = '';
+      return;
+    }
+    preview.hidden = false;
+    preview.innerHTML = currentAttachments.map((item, idx) => `
+      <div class="preview-chip">
+        ${item.type.startsWith('image/') ? `<img src="${item.data}">` : `<video src="${item.data}"></video>`}
+        <button class="preview-remove" data-idx="${idx}">✕</button>
+      </div>
+    `).join('');
+
+    preview.querySelectorAll('.preview-remove').forEach(btn => {
+      btn.onclick = () => {
+        currentAttachments.splice(Number(btn.dataset.idx), 1);
+        renderAttachments();
+      };
+    });
+  }
+
+  async function sendMessage(text) {
+    const promptText = (text ?? $('prompt').value).trim();
+    if ((!promptText && !currentAttachments.length) || busy) return;
+    
+    let chat = currentChat();
+    if (!chat) { createChat(false); chat = currentChat(); }
+    
+    const mediaToSend = [...currentAttachments];
+    currentAttachments = [];
+    renderAttachments();
+    $('prompt').value = '';
+    resizeInput();
+
+    chat.messages.push({ role: 'user', content: promptText, media: mediaToSend });
+    if (chat.messages.length === 1) {
+      chat.title = promptText ? (promptText.slice(0, 38) + (promptText.length > 38 ? '…' : '')) : 'Медиа-запрос';
+    }
+
+    $('welcome').hidden = true;
+    $('messages').hidden = false;
+    appendMessage('user', promptText, null, mediaToSend);
+    
+    const assistantBubble = appendMessage('assistant', '', chat.messages.length, null, true);
+    const typing = document.createElement('div');
+    typing.className = 'typing';
+    typing.innerHTML = '<i></i><i></i><i></i>';
+    assistantBubble.append(typing);
+
+    setBusy(true);
+    abortController = new AbortController();
+    saveData();
+    renderSidebar();
+
+    try {
+      const model = $('modelSelect').value;
+      const customKey = $('customApiKey').value.trim();
+      let answer = '';
+
+      // Если задан кастомный ключ, можно подключить прямой fetch к OpenAI/Anthropic, либо использовать Puter.ai
+      if (customKey && window.puter && window.puter.ai) {
+        // Пример использования Puter с кастомным ключом или стандартный вызов
+      }
+
+      if (!window.puter?.ai?.chat) {
+        throw new Error('Puter AI API недоступен.');
+      }
+
+      // Формируем историю для Puter AI
+      const history = chat.messages.map(m => ({
+        role: m.role,
+        content: m.media && m.media.length ? [
+          { type: 'text', text: m.content },
+          ...m.media.map(med => ({ type: 'image_url', image_url: { url: med.data } }))
+        ] : m.content
+      }));
+
+      const response = await puter.ai.chat(history, {
+        model: model,
+        stream: true,
+        signal: abortController.signal
+      });
+
+      for await (const part of response) {
+        if (part.type === 'error') throw new Error(part.message || 'Ошибка генерации модели.');
+        if (part.type === 'text') {
+          answer += part.text || '';
+          typing.remove();
+          assistantBubble.innerHTML = markdown(answer);
+          scrollBottom();
+        }
+      }
+
+      if (!answer.trim()) answer = 'Ответ не получен. Попробуйте другую модель.';
+      typing.remove();
+      assistantBubble.innerHTML = markdown(answer);
+      
+      chat.messages.push({ role: 'assistant', content: answer });
+      
+      // Добавляем тулзы для копирования/озвучки
+      const tools = document.createElement('div');
+      tools.className = 'msg-tools';
+      const copy = document.createElement('button'); copy.className = 'mini-btn'; copy.textContent = '📋 Копировать'; copy.onclick = () => navigator.clipboard?.writeText(answer).then(() => toast('Скопировано'));
+      const speak = document.createElement('button'); speak.className = 'mini-btn'; speak.textContent = '🔊 Озвучить'; speak.onclick = () => speakText(answer);
+      tools.append(copy, speak);
+      assistantBubble.append(tools);
+
+      saveData();
+    } catch(err) {
+      typing.remove();
+      const msg = err.name === 'AbortError' ? 'Генерация остановлена.' : `Ошибка: ${err.message || err}`;
+      assistantBubble.innerHTML = markdown(msg);
+      if (err.name !== 'AbortError') {
+        chat.messages.push({ role: 'assistant', content: msg });
+        toast('Ошибка связи с AI');
+      }
+      saveData();
+    } finally {
+      setBusy(false);
+      abortController = null;
+      $('prompt').focus();
+    }
+  }
+
+  function resizeInput() {
+    const el = $('prompt');
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+  }
+
+  // События
+  $('newChat').onclick = () => createChat();
+  $('sendBtn').onclick = () => { if (busy) { abortController?.abort(); return; } sendMessage(); };
+  $('prompt').addEventListener('input', resizeInput);
+  $('prompt').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  $('micBtn').onclick = initSpeechRecognition;
+  
+  $('clearBtn').onclick = () => {
+    const c = currentChat();
+    if (!c || !c.messages.length) return;
+    if (confirm('Очистить сообщения в текущем чате?')) {
+      c.messages = [];
+      c.title = 'Новый диалог';
+      saveData();
+      renderAll();
+    }
+  };
+
+  $('exportBtn').onclick = () => {
+    const c = currentChat();
+    if (!c || !c.messages.length) { toast('Чат пуст'); return; }
+    const md = c.messages.map(m => `### ${m.role === 'user' ? 'Пользователь' : 'AI'}\n\n${m.content}\n`).join('\n---\n\n');
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${c.title.replace(/[^a-zа-я0-9]/gi, '_')}.md`;
+    a.click();
+    toast('Чат экспортирован в Markdown');
+  };
+
+  // Переключение тем
+  $('themeToggle').onclick = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle('light', !isDark);
+    $('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  };
+
+  // Мобильное меню
+  $('menuBtn').onclick = () => $('sidebar').classList.toggle('open');
+
+  // Настройки
+  $('settingsBtn').onclick = () => $('settingsModal').style.display = 'flex';
+  $('closeModal').onclick = () => $('settingsModal').style.display = 'none';
+  $('saveSettings').onclick = () => {
+    saveData();
+    $('settingsModal').style.display = 'none';
+    toast('Настройки сохранены');
+  };
+
+  document.querySelectorAll('.suggestion').forEach(b => b.addEventListener('click', () => sendMessage(b.dataset.prompt)));
+
+  async function initPuterAuth() {
+    try {
+      if (window.puter?.auth && await puter.auth.isSignedIn()) {
+        const user = await puter.auth.getUser();
+        if (user) {
+          $('userName').textContent = user.username || user.name || 'Пользователь';
+          $('userAvatar').textContent = (user.username || 'P').slice(0, 1).toUpperCase();
+        }
+      }
+    } catch(e) {}
+  }
+
+  loadData();
+  initPuterAuth();
+})();
+</script>
+</body>
+</html>
